@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Connect with {{ to_user.get_full_name|default:to_user.username }} - DMeet{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <!-- Event Context -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-calendar-check fa-3x text-primary me-3"></i>
+                        <div>
+                            <h5 class="mb-1">{{ event.title }}</h5>
+                            <p class="text-muted mb-1">{{ event.start_time|date:"l, F d, Y" }}</p>
+                            <small class="text-muted">{{ event.address }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Connection Form -->
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-handshake me-2"></i>Connect with {{ to_user.get_full_name|default:to_user.username }}
+                    </h4>
+                    <p class="mb-0 mt-1 small">Build your network from shared experiences</p>
+                </div>
+                <div class="card-body">
+                    <!-- User Info -->
+                    <div class="d-flex align-items-center mb-4 p-3 bg-light rounded">
+                        <i class="fas fa-user-circle fa-4x text-primary me-3"></i>
+                        <div>
+                            <h5 class="mb-1">{{ to_user.get_full_name|default:to_user.username }}</h5>
+                            {% if to_user.profile.bio %}
+                            <p class="text-muted small mb-0">{{ to_user.profile.bio|truncatewords:20 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        {% crispy form %}
+                        
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-handshake me-2"></i>Send Connection Request
+                            </button>
+                            <a href="{% url 'event_detail' event.pk %}" class="btn btn-outline-secondary btn-lg ms-2">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Event
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Connection Info -->
+            <div class="card mt-4 shadow-sm">
+                <div class="card-body">
+                    <h6><i class="fas fa-info-circle me-2"></i>About Connections</h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <ul class="small text-muted">
+                                <li>You can make up to 3 connections per event</li>
+                                <li>Connections help you build your professional network</li>
+                                <li>Both users must have attended the same event</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul class="small text-muted">
+                                <li>Connection requests are visible to the other person</li>
+                                <li>You can view all your connections in your dashboard</li>
+                                <li>Connections can only be made after events end</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

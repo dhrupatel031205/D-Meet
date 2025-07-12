@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Create Event - DMeet{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-plus-circle me-2"></i>Create New Event
+                    </h4>
+                    <p class="mb-0 mt-1 small">Share your passion with the community!</p>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="event-form">
+                        {% csrf_token %}
+                        {% crispy form %}
+                        
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-calendar-plus me-2"></i>Create Event
+                            </button>
+                            <a href="{% url 'home' %}" class="btn btn-outline-secondary btn-lg ms-2">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Event Creation Tips -->
+            <div class="card mt-4 shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-lightbulb me-2"></i>Tips for a Great Event</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <h6><i class="fas fa-edit text-primary me-2"></i>Write a compelling title</h6>
+                                <p class="small text-muted">Make it clear, specific, and exciting to attract attendees.</p>
+                            </div>
+                            <div class="mb-3">
+                                <h6><i class="fas fa-align-left text-primary me-2"></i>Detailed description</h6>
+                                <p class="small text-muted">Include what attendees will learn, do, or experience.</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <h6><i class="fas fa-clock text-primary me-2"></i>Choose the right time</h6>
+                                <p class="small text-muted">Consider your target audience's schedule and preferences.</p>
+                            </div>
+                            <div class="mb-3">
+                                <h6><i class="fas fa-map-marker-alt text-primary me-2"></i>Accessible location</h6>
+                                <p class="small text-muted">Pick a location that's easy to find and get to.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info mt-3">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Note:</strong> Your event will be reviewed by our admin team before going live. 
+                        This usually takes 24-48 hours.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize map for location selection
+    const map = L.map('event-map').setView([40.7128, -74.0060], 10); // Default to NYC
+    
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+    
+    let eventMarker = null;
+    
+    // Handle map clicks to set event location
+    map.on('click', function(e) {
+        const lat = e.latlng.lat;
+        const lng = e.latlng.lng;
+        
+        // Remove existing marker
+        if (eventMarker) {
+            map.removeLayer(eventMarker);
+        }
+        
+        // Add new marker
+        eventMarker = L.marker([lat, lng])
+            .addTo(map)
+            .bindPopup('Event Location')
+            .openPopup();
+        
+        // Update form fields
+        document.getElementById('id_latitude').value = lat;
+        document.getElementById('id_longitude').value = lng;
+        
+        // Try to get address from coordinates (reverse geocoding)
+        reverseGeocode(lat, lng);
+    });
+    
+    // Try to get user's location for better map centering
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+            const userLat = position.coords.latitude;
+            const userLng = position.coords.longitude;
+            
+            map.setView([userLat, userLng], 12);
+            
+            // Add user location marker for reference
+            L.marker([userLat, userLng], {
+                icon: L.icon({
+                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+                    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                    popupAnchor: [1, -34],
+                    shadowSize: [41, 41]
+                })
+            })
+            .bindPopup('<strong>Your Location</strong>')
+            .addTo(map);
+        });
+    }
+    
+    // Simple reverse geocoding (you might want to use a proper service)
+    function reverseGeocode(lat, lng) {
+        // This is a basic implementation - in production, you'd use a proper geocoding service
+        const addressField = document.getElementById('id_address');
+        if (addressField && !addressField.value) {
+            addressField.value = `Location: ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+        }
+    }
+    
+    // Form validation
+    document.getElementById('event-form').addEventListener('submit', function(e) {
+        const lat = document.getElementById('id_latitude').value;
+        const lng = document.getElementById('id_longitude').value;
+        
+        if (!lat || !lng) {
+            e.preventDefault();
+            alert('Please select a location on the map for your event.');
+            return false;
+        }
+        
+        // Validate dates
+        const startTime = new Date(document.getElementById('id_start_time').value);
+        const endTime = new Date(document.getElementById('id_end_time').value);
+        
+        if (endTime <= startTime) {
+            e.preventDefault();
+            alert('End time must be after start time.');
+            return false;
+        }
+        
+        if (startTime <= new Date()) {
+            e.preventDefault();
+            alert('Event start time must be in the future.');
+            return false;
+        }
+    });
+});
+</script>
+{% endblock %}
