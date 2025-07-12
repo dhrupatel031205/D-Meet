@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Edit Profile - DMeet{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-user-edit me-2"></i>Edit Your Profile
+                    </h4>
+                    <p class="mb-0 mt-1 small">Customize your DMeet experience</p>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="profile-form">
+                        {% csrf_token %}
+                        {% crispy form %}
+                        
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-save me-2"></i>Save Profile
+                            </button>
+                            <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary btn-lg ms-2">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Profile Tips -->
+            <div class="card mt-4 shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-lightbulb me-2"></i>Profile Tips</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <h6><i class="fas fa-map-marker-alt text-primary me-2"></i>Set Your Location</h6>
+                                <p class="small text-muted">Click on the map to set your location for better event recommendations based on distance.</p>
+                            </div>
+                            <div class="mb-3">
+                                <h6><i class="fas fa-heart text-primary me-2"></i>Choose Your Interests</h6>
+                                <p class="small text-muted">Select categories you're interested in to get personalized event suggestions.</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <h6><i class="fas fa-user text-primary me-2"></i>Write About Yourself</h6>
+                                <p class="small text-muted">A good bio helps other attendees know who you are when making connections.</p>
+                            </div>
+                            <div class="mb-3">
+                                <h6><i class="fas fa-shield-alt text-primary me-2"></i>Privacy Note</h6>
+                                <p class="small text-muted">Your location is only used for distance calculations and event suggestions.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize map for location selection
+    const map = L.map('profile-map').setView([40.7128, -74.0060], 10); // Default to NYC
+    
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+    
+    let userMarker = null;
+    
+    // Load existing location if available
+    const existingLat = parseFloat(document.getElementById('id_latitude').value);
+    const existingLng = parseFloat(document.getElementById('id_longitude').value);
+    
+    if (existingLat && existingLng) {
+        userMarker = L.marker([existingLat, existingLng])
+            .addTo(map)
+            .bindPopup('Your Current Location')
+            .openPopup();
+        map.setView([existingLat, existingLng], 12);
+    }
+    
+    // Handle map clicks to set location
+    map.on('click', function(e) {
+        const lat = e.latlng.lat;
+        const lng = e.latlng.lng;
+        
+        // Remove existing marker
+        if (userMarker) {
+            map.removeLayer(userMarker);
+        }
+        
+        // Add new marker
+        userMarker = L.marker([lat, lng])
+            .addTo(map)
+            .bindPopup('Your Location')
+            .openPopup();
+        
+        // Update form fields
+        document.getElementById('id_latitude').value = lat;
+        document.getElementById('id_longitude').value = lng;
+    });
+    
+    // Try to get user's current location
+    if (navigator.geolocation && !existingLat && !existingLng) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+            const userLat = position.coords.latitude;
+            const userLng = position.coords.longitude;
+            
+            map.setView([userLat, userLng], 12);
+            
+            // Add current location marker
+            if (userMarker) {
+                map.removeLayer(userMarker);
+            }
+            
+            userMarker = L.marker([userLat, userLng])
+                .addTo(map)
+                .bindPopup('<strong>Your Current Location</strong><br><small>Click anywhere on the map to change</small>')
+                .openPopup();
+            
+            // Set form values
+            document.getElementById('id_latitude').value = userLat;
+            document.getElementById('id_longitude').value = userLng;
+        }, function(error) {
+            console.log('Geolocation error:', error);
+        });
+    }
+    
+    // Form validation
+    document.getElementById('profile-form').addEventListener('submit', function(e) {
+        // Optional validation - profile can be saved without location
+        const interestCheckboxes = document.querySelectorAll('input[name="interests"]:checked');
+        if (interestCheckboxes.length === 0) {
+            const confirmSubmit = confirm('You haven\'t selected any interests. This will limit personalized event recommendations. Continue anyway?');
+            if (!confirmSubmit) {
+                e.preventDefault();
+                return false;
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

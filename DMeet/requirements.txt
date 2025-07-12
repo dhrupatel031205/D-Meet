@@ -1,0 +1,18 @@
+Django==5.1.7
+psycopg2-binary==2.9.9
+django-crispy-forms==2.1
+crispy-bootstrap5==2024.2
+Pillow==10.4.0
+
+# GeoDjango dependencies
+GDAL==3.8.5
+GEOS==3.12.1
+
+# Optional but recommended
+python-dotenv==1.0.1
+gunicorn==22.0.0
+whitenoise==6.7.0
+
+# Development dependencies (optional)
+django-debug-toolbar==4.4.6
+django-extensions==3.2.3
