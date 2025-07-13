@@ -1,11 +1,9 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth import login
+from django.contrib.auth import login, get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q, Count
 from django.http import JsonResponse
-from django.contrib.gis.measure import D
-from django.contrib.gis.geos import Point
 from django.core.paginator import Paginator
 from django.utils import timezone
 from django.urls import reverse_lazy
@@ -15,9 +13,10 @@ import json
 
 from .models import Event, EventCategory, RSVP, Feedback, Connection, Profile
 from .forms import (
-    CustomUserCreationForm, ProfileForm, EventForm, EventFilterForm,
-    FeedbackForm, ConnectionForm, SearchForm
+    EventForm, EventFilterForm, FeedbackForm, ConnectionForm, SearchForm
 )
+
+User = get_user_model()
 
 
 def home(request):
@@ -41,11 +40,11 @@ def home(request):
         if date_to:
             events = events.filter(start_time__date__lte=date_to)
         
-        # Distance filtering (requires user location)
-        if distance and request.user.is_authenticated and hasattr(request.user, 'profile') and request.user.profile.location:
-            distance_km = int(distance)
-            user_location = request.user.profile.location
-            events = events.filter(location__distance_lte=(user_location, D(km=distance_km)))
+        # Distance filtering (disabled temporarily until GeoDjango is configured)
+        # if distance and request.user.is_authenticated and hasattr(request.user, 'profile') and request.user.profile.location:
+        #     distance_km = int(distance)
+        #     user_location = request.user.profile.location
+        #     events = events.filter(location__distance_lte=(user_location, D(km=distance_km)))
     
     # Search functionality
     search_form = SearchForm(request.GET)
@@ -63,18 +62,18 @@ def home(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
-    # Get event data for map
+    # Get event data for map (disabled temporarily until GeoDjango is configured)
     events_for_map = []
-    for event in events[:50]:  # Limit for performance
-        events_for_map.append({
-            'id': event.id,
-            'title': event.title,
-            'lat': event.location.y,
-            'lng': event.location.x,
-            'start_time': event.start_time.isoformat(),
-            'category': event.category.name,
-            'url': event.get_absolute_url()
-        })
+    # for event in events[:50]:  # Limit for performance
+    #     events_for_map.append({
+    #         'id': event.id,
+    #         'title': event.title,
+    #         'lat': event.location.y,
+    #         'lng': event.location.x,
+    #         'start_time': event.start_time.isoformat(),
+    #         'category': event.category.name,
+    #         'url': event.get_absolute_url()
+    #     })
     
     context = {
         'page_obj': page_obj,

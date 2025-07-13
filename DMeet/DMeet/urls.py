@@ -16,28 +16,39 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from django.contrib.auth import views as auth_views
 from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     
-    # Authentication URLs
-    path('login/', auth_views.LoginView.as_view(), name='login'),
-    path('logout/', auth_views.LogoutView.as_view(), name='logout'),
-    path('password_change/', auth_views.PasswordChangeView.as_view(), name='password_change'),
-    path('password_change/done/', auth_views.PasswordChangeDoneView.as_view(), name='password_change_done'),
-    path('password_reset/', auth_views.PasswordResetView.as_view(), name='password_reset'),
-    path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
-    path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
-    path('reset/done/', auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
-    
-    # Core app URLs
+    # Core app URLs (events, home, etc.)
     path('', include('core.urls')),
+    
+    # Authentication and user management
+    path('accounts/', include('accounts.urls')),
+    
+    # Video meetings
+    path('meetings/', include('meetings.urls')),
+    
+    # Notifications
+    path('notifications/', include('notifications.urls')),
+    
+    # Dashboards
+    path('dashboard/', include('dashboard.urls')),
+    
+    # API endpoints
+    path('api/', include('core.api_urls')),
+    path('api/accounts/', include('accounts.api_urls')),
+    path('api/meetings/', include('meetings.api_urls')),
 ]
 
 # Serve media files in development
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+
+# Admin customization
+admin.site.site_header = 'DMeeet Administration'
+admin.site.site_title = 'DMeeet Admin'
+admin.site.index_title = 'Welcome to DMeeet Administration'
