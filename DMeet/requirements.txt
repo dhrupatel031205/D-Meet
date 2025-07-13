@@ -8,6 +8,30 @@ Pillow==10.4.0
 GDAL==3.8.5
 GEOS==3.12.1
 
+# Authentication & Social Login
+django-allauth==0.57.0
+
+# Real-time features
+channels==4.0.0
+channels-redis==4.1.0
+
+# Background tasks
+celery==5.3.4
+redis==5.0.1
+django-celery-beat==2.5.0
+
+# Email
+django-email-extras==0.3.0
+
+# API (for video integration)
+djangorestframework==3.14.0
+
+# Video meeting integrations
+requests==2.31.0
+
+# Notifications
+django-notifications-hq==1.8.3
+
 # Optional but recommended
 python-dotenv==1.0.1
 gunicorn==22.0.0

@@ -1,4 +1,4 @@
-from django.contrib.gis.db import models
+from django.db import models
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.utils import timezone
@@ -22,7 +22,7 @@ class EventCategory(models.Model):
 class Profile(models.Model):
     """Extended user profile with location and interests"""
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    location = models.PointField(help_text="User's location for event discovery", null=True, blank=True)
+    # location = models.PointField(help_text="User's location for event discovery", null=True, blank=True)  # Temporarily disabled
     bio = models.TextField(max_length=500, blank=True)
     interests = models.ManyToManyField(EventCategory, blank=True, help_text="Categories user is interested in")
     created_at = models.DateTimeField(auto_now_add=True)
@@ -39,7 +39,7 @@ class Event(models.Model):
     """Main event model with location and details"""
     title = models.CharField(max_length=200)
     description = models.TextField()
-    location = models.PointField(help_text="Event location coordinates")
+    # location = models.PointField(help_text="Event location coordinates")  # Temporarily disabled
     address = models.CharField(max_length=300, help_text="Human readable address")
     category = models.ForeignKey(EventCategory, on_delete=models.CASCADE)
     organizer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='organized_events')
